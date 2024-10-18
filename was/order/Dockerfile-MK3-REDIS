@@ -1,0 +1,60 @@
+# 빌드 스테이지
+FROM alpine:3.14 AS build
+LABEL maintainer="soonge679@gmail.com"
+
+# 필요한 패키지 설치 및 Tomcat 다운로드
+RUN apk add --no-cache wget tar openjdk8-jre-base && \
+    wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.93/bin/apache-tomcat-9.0.93.tar.gz -O /tmp/apache-tomcat.tar.gz && \
+    mkdir -p /usr/local/tomcat && \
+    tar -xzf /tmp/apache-tomcat.tar.gz -C /usr/local/tomcat --strip-components=1 && \
+    rm /tmp/apache-tomcat.tar.gz && \
+    wget https://github.com/ran-jit/tomcat-cluster-redis-session-manager/releases/download/2.0.4/tomcat-cluster-redis-session-manager.zip && \
+    unzip tomcat-cluster-redis-session-manager.zip && \
+    cp tomcat-cluster-redis-session-manager/lib/* /usr/local/tomcat/lib/ && \
+    cp tomcat-cluster-redis-session-manager/conf/* /usr/local/tomcat/conf/ && \
+    rm tomcat-cluster-redis-session-manager.zip && \
+    rm -rf tomcat-cluster-redis-session-manager && \
+    wget https://repo1.maven.org/maven2/redis/clients/jedis/3.7.1/jedis-3.7.1.jar && \
+    cp jedis-3.7.1.jar $JAVA_HOME/lib && \
+    mv jedis-3.7.1.jar $CATALINA_HOME/lib/
+
+# 최종 이미지 스테이지
+FROM alpine:3.14
+LABEL maintainer="soonge679@gmail.com"
+
+# 필요한 패키지 설치
+RUN apk add --no-cache openjdk8-jre-base && \
+    apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    echo "Asia/Seoul" > /etc/timezone && \
+    apk del --purge tzdata && \
+    rm -rf /var/cache/apk/*
+
+# Tomcat 복사
+COPY --from=build /usr/local/tomcat /usr/local/tomcat
+
+# MariaDB JDBC 드라이버 복사
+COPY mariadb-java-client-3.4.0.jar /usr/local/tomcat/lib
+
+# Redis 설정 파일 및 JSP 복사
+COPY redis-data-cache.properties /usr/local/tomcat/conf/
+COPY context.xml /usr/local/tomcat/conf/
+COPY web.xml /usr/local/tomcat/conf/
+
+# JSP 파일 복사
+COPY session_check.jsp /usr/local/tomcat/webapps/ROOT/
+COPY ROOT /usr/local/tomcat/webapps/ROOT
+
+# 경로 지정
+ENV JAVA_HOME=/usr/lib/jvm/java-1.8-openjdk
+ENV CATALINA_HOME=/usr/local/tomcat
+
+# 환경 변수 설정
+ENV CLASSPATH="$JAVA_HOME/lib/tools.jar:$CATALINA_HOME/lib/jsp-api.jar:$CATALINA_HOME/lib/servlet-api.jar:$CATALINA_HOME/lib/jedis-3.7.1.jar:$CATALINA_HOME/lib/tomcat-cluster-redis-session-manager-2.0.4.jar"
+
+
+# Tomcat 포트 노출
+EXPOSE 8080
+
+# Tomcat 실행
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
