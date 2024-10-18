@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-was-order
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: sc-was-order
+  nfs:
+    path: /dynamic_provisioning/order
+    server: fs-05f0e46aec263fa2a.efs.ap-northeast-2.amazonaws.com

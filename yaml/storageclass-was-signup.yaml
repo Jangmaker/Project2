@@ -1,0 +1,10 @@
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: sc-was-signup  # 스토리지 클래스 이름
+provisioner: efs.csi.aws.com  # EFS CSI 드라이버를 사용하여 EFS를 프로비저닝하는 프로비저너
+parameters:
+  provisioningMode: efs-ap  # EFS 접속 지점을 사용한 프로비저닝 모드
+  fileSystemId: fs-05f0e46aec263fa2a  # EFS 파일 시스템ID
+  directoryPerms: "700"  # 생성된 디렉터리의 권한 설정
+  basePath: "/dynamic_provisioning/signup"  # 동적 프로비저닝된 디렉터리의 기본 경로

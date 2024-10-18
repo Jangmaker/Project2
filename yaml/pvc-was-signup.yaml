@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-was-signup
+  namespace: was
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: sc-was-signup
+  resources:
+    requests:
+      storage: 2Gi
+

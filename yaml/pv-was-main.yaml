@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-was-main
+spec:
+  capacity:
+    storage: 2Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: sc-was-main
+  nfs:
+    path: /dynamic_provisioning/main
+    server: fs-05f0e46aec263fa2a.efs.ap-northeast-2.amazonaws.com
