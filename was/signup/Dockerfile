@@ -1,0 +1,41 @@
+# 빌드 스테이지
+FROM alpine:3.14 AS build
+LABEL maintainer="soonge679@gmail.com"
+
+# 필요한 패키지 설치 및 Tomcat 다운로드
+RUN apk add --no-cache wget tar openjdk8-jre-base && \
+    wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.93/bin/apache-tomcat-9.0.93.tar.gz -O /tmp/apache-tomcat.tar.gz && \
+    mkdir -p /usr/local/tomcat && \
+    tar -xzf /tmp/apache-tomcat.tar.gz -C /usr/local/tomcat --strip-components=1 && \
+    rm /tmp/apache-tomcat.tar.gz && \
+    rm -rf /usr/local/tomcat/webapps/examples /usr/local/tomcat/webapps/docs /usr/local/tomcat/webapps/host-manager /usr/local/tomcat/webapps/manager
+
+# 최종 이미지 스테이지
+FROM alpine:3.14
+LABEL maintainer="soonge679@gmail.com"
+
+# 필요한 패키지 설치
+RUN apk add --no-cache openjdk8-jre-base && \
+    apk add --no-cache tzdata && \
+    cp /usr/share/zoneinfo/Asia/Seoul /etc/localtime && \
+    echo "Asia/Seoul" > /etc/timezone && \
+    apk del --purge tzdata && \
+    rm -rf /var/cache/apk/* /tmp/*
+
+# Tomcat 복사
+COPY --from=build /usr/local/tomcat /usr/local/tomcat
+
+# MariaDB JDBC 드라이버 복사
+COPY mariadb-java-client-3.4.0.jar /usr/local/tomcat/lib
+
+# JSP 파일 복사
+COPY ROOT /usr/local/tomcat/webapps/ROOT
+
+# 경로 지정
+ENV CATALINA_HOME=/usr/local/tomcat
+
+# Tomcat 포트 노출
+EXPOSE 8080
+
+# Tomcat 실행
+CMD ["/usr/local/tomcat/bin/catalina.sh", "run"]
