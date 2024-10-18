@@ -86,3 +86,9 @@ AWS EKS를 활용한 3-Tier 아키텍처 기반 웹 서비스를 구축하여, �
 
 ## 🧱아키텍처
 ![architecture.jpg](img/architecture.jpg)
+
+## 🗂PAGE
+![1.jpg](img/1.png)
+![2.jpg](img/2.png)
+![3.jpg](img/3.png)
+![4.jpg](img/4.png)
